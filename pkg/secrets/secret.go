@@ -1,3 +1,7 @@
+/*
+This package is responsible for reading the secrets file and providing access
+to the secrets to other packages.
+*/
 package secrets
 
 import (

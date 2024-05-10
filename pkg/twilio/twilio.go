@@ -1,3 +1,6 @@
+/*
+Package twilio provides a simple io.Writer implementation that sends SMS messages via Twilio.
+*/
 package twilio
 
 import (
@@ -15,7 +18,7 @@ type twilioWriter struct {
 
 var _ io.Writer = twilioWriter{}
 
-// Creates a new TwilioWriter with the given account SID, API secret, and destination number
+// Creates a new TwilioWriter, which sends messages to the destination number when written to
 func NewTwilioWriter(
 	accountSid string,
 	apiSecret string,
