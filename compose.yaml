@@ -1,0 +1,22 @@
+services:
+  app:
+    profiles: [prod]
+    build: .
+    secrets:
+      - secrets
+    environment:
+      - SMS_DEST_NUMBER=$SMS_DEST_NUMBER
+  app-dev:
+    profiles: [dev]
+    build: .
+    volumes:
+      - ./:/app
+      - /app/bin
+    secrets:
+      - secrets
+    environment:
+      - SMS_DEST_NUMBER=$SMS_DEST_NUMBER
+    command: bash -c "make bin/sync && ./bin/sync"
+secrets:
+  secrets:
+    file: ./secrets.yaml
