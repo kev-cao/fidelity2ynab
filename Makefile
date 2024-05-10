@@ -10,7 +10,7 @@ build-dev:
 
 .PHONY: prod
 prod:
-	docker compose --profile prod 
+	docker compose --profile prod up
 
 .PHONY: build-prod
 build-prod:

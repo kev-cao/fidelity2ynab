@@ -16,6 +16,7 @@ services:
       - secrets
     environment:
       - SMS_DEST_NUMBER=$SMS_DEST_NUMBER
+      - ENV=dev
     command: bash -c "make bin/sync && ./bin/sync"
 secrets:
   secrets:

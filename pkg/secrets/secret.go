@@ -13,7 +13,7 @@ import (
 
 type secrets struct {
 	FidelityTotpSecret string `yaml:"fidelity_totp_secret"`
-	FidelityEmail      string `yaml:"fidelity_email"`
+	FidelityUsername   string `yaml:"fidelity_username"`
 	FidelityPassword   string `yaml:"fidelity_password"`
 	YnabApiKey         string `yaml:"ynab_api_key"`
 	TwilioAccountSid   string `yaml:"twilio_account_sid"`

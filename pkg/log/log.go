@@ -22,7 +22,7 @@ var logger *slog.Logger
 func init() {
 	group := HandlerGroup{}
 	creds, err := secrets.GetSecrets()
-	if err != nil {
+	if err == nil && os.Getenv("ENV") != "dev" {
 		// Automatically send error logs to the Twilio number
 		group.AddHandler(slog.NewTextHandler(twilio.NewTwilioWriter(
 			creds.TwilioAccountSid,
@@ -33,7 +33,11 @@ func init() {
 			Level: slog.LevelError,
 		}))
 	}
-	group.AddHandler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
+	stdoutOptions := slog.HandlerOptions{}
+	if os.Getenv("ENV") == "dev" {
+		stdoutOptions.Level = slog.LevelDebug
+	}
+	group.AddHandler(slog.NewTextHandler(os.Stdout, &stdoutOptions))
 	logger = slog.New(group)
 }
 
