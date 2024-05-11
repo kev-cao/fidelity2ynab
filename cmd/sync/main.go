@@ -15,7 +15,7 @@ import (
 func main() {
 	secrets, err := secrets.GetSecrets()
 	if err != nil {
-		log.Fatal("Failed to get secrets: %s", err)
+		log.Fatal("Failed to get secrets: " + err.Error())
 	}
 	fidelityClient, err := fidelity.NewFidelityBrowserClient(
 		secrets.FidelityUsername,
