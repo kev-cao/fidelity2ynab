@@ -64,6 +64,12 @@ func (c *ynabClient) UpdateAccountBalance(
 ) error {
 	currentBalance := float64(account.Balance) / 1000
 	difference := balance - currentBalance
+	if difference == 0 {
+		log.Info(fmt.Sprintf(
+			"Balance is already %.2f, no need to update", currentBalance,
+		))
+		return nil
+	}
 	log.Info(fmt.Sprintf(
 		"Updating balance from %.2f to %.2f by adding transaction %.2f",
 		currentBalance, balance, difference,
