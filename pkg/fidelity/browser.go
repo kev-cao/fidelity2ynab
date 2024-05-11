@@ -16,7 +16,11 @@ import (
 	"kevincao.dev/fidelity2ynab/pkg/log"
 )
 
-type fidelitySeleniumClient struct {
+const (
+	DELAY = 500 * time.Millisecond
+)
+
+type fidelityBrowserClient struct {
 	username    string
 	password    string
 	totp_secret string
@@ -24,23 +28,27 @@ type fidelitySeleniumClient struct {
 	cuCtxCancel context.CancelFunc
 }
 
-func NewFidelityBrowserClient(username, password, totp_secret string) (*fidelitySeleniumClient, error) {
-	client := fidelitySeleniumClient{
+var _ FidelityClient = fidelityBrowserClient{}
+
+// NewFidelityBrowserClient creates a new FidelityBrowserClient
+// If no options are provided, the default options are a 1 minute timeout and headless mode.
+func NewFidelityBrowserClient(username, password, totp_secret string, opts ...cu.Option) (*fidelityBrowserClient, error) {
+	client := fidelityBrowserClient{
 		username:    username,
 		password:    password,
 		totp_secret: totp_secret,
 	}
-	if err := client.initializeBrowser(); err != nil {
+	if len(opts) == 0 {
+		opts = []cu.Option{cu.WithTimeout(1 * time.Minute), cu.WithHeadless()}
+	}
+	if err := client.initializeBrowserContext(opts...); err != nil {
 		return nil, err
 	}
 	return &client, nil
 }
 
-func (c *fidelitySeleniumClient) initializeBrowser() error {
-	ctx, cancel, err := cu.New(cu.NewConfig(
-		cu.WithHeadless(),
-		cu.WithTimeout(1*time.Minute),
-	))
+func (c *fidelityBrowserClient) initializeBrowserContext(opts ...cu.Option) error {
+	ctx, cancel, err := cu.New(cu.NewConfig(opts...))
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to create undetected chromedp context: %s", err))
 	}
@@ -49,11 +57,12 @@ func (c *fidelitySeleniumClient) initializeBrowser() error {
 	return nil
 }
 
-func (c fidelitySeleniumClient) Close() {
+// Close closes the browser client context
+func (c fidelityBrowserClient) Close() {
 	c.cuCtxCancel()
 }
 
-func (c fidelitySeleniumClient) login() error {
+func (c fidelityBrowserClient) login() error {
 	if err := chromedp.Run(
 		c.cuCtx, chromedp.Navigate("https://digital.fidelity.com/prgw/digital/login/full-page"),
 	); err != nil {
@@ -69,18 +78,18 @@ func (c fidelitySeleniumClient) login() error {
 	return nil
 }
 
-func (c fidelitySeleniumClient) submitCredentials() error {
+func (c fidelityBrowserClient) submitCredentials() error {
 	if err := chromedp.Run(c.cuCtx, chromedp.SendKeys("#dom-username-input", c.username, chromedp.ByQuery)); err != nil {
 		return errors.New(fmt.Sprintf("Could not find username input element: %s", err))
 	}
 	log.Debug("Found username input element")
-	time.Sleep(1 * time.Second)
+	time.Sleep(DELAY)
 
 	if err := chromedp.Run(c.cuCtx, chromedp.SendKeys("#dom-pswd-input", c.password, chromedp.ByQuery)); err != nil {
 		return errors.New(fmt.Sprintf("Could not find password input element: %s", err))
 	}
 	log.Debug("Found password input element")
-	time.Sleep(1 * time.Second)
+	time.Sleep(DELAY)
 
 	if err := chromedp.Run(c.cuCtx, chromedp.Click("#dom-login-button", chromedp.ByQuery)); err != nil {
 		return errors.New(fmt.Sprintf("Could not find login button: %s", err))
@@ -89,7 +98,7 @@ func (c fidelitySeleniumClient) submitCredentials() error {
 	return nil
 }
 
-func (c fidelitySeleniumClient) submitTotp() error {
+func (c fidelityBrowserClient) submitTotp() error {
 	code, err := totp.GenerateCode(c.totp_secret, time.Now())
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to generate TOTP code: %s", err))
@@ -98,7 +107,7 @@ func (c fidelitySeleniumClient) submitTotp() error {
 		return errors.New(fmt.Sprintf("Could not find TOTP element: %s", err))
 	}
 	log.Debug("Found TOTP input element")
-	time.Sleep(1 * time.Second)
+	time.Sleep(DELAY)
 
 	if err := chromedp.Run(c.cuCtx, chromedp.Click("#dom-svip-code-submit-button", chromedp.ByQuery)); err != nil {
 		return errors.New(fmt.Sprintf("Could not find TOTP submit button: %s", err))
@@ -108,7 +117,7 @@ func (c fidelitySeleniumClient) submitTotp() error {
 	return nil
 }
 
-func (c fidelitySeleniumClient) GetBalance() (float64, error) {
+func (c fidelityBrowserClient) GetBalance() (float64, error) {
 	if err := c.login(); err != nil {
 		return 0, err
 	}

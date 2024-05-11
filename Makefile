@@ -1,24 +1,32 @@
+DEV_VOLUMES = --mount type=bind,src=$$(pwd)/.,dst=/app \
+	--mount type=volume,dst=/app/bin
+VOLUMES = --mount type=bind,src=$$(pwd)/secrets.yaml,dst=/run/secrets/secrets
+
 GOBIN ?= $$(pwd)/bin/
 
 .PHONY: dev
 dev: 
-	docker compose --profile dev up
-
-.PHONY: build-dev
-build-dev:
-	docker compose --profile dev build
+	docker run $(VOLUMES) $(DEV_VOLUMES) -e ENV=dev --entrypoint=/bin/sh \
+	fidelity2ynab -c "make bin/sync && ./bin/sync"
 
 .PHONY: prod
 prod:
-	docker compose --profile prod up
+	make build && \
+	docker run $(VOLUMES) fidelity2ynab
 
-.PHONY: build-prod
-build-prod:
-	docker compose --profile prod build
+.PHONY: build
+build:
+	docker build -t fidelity2ynab .
 
 .PHONY: test
 test:
-	go test -v ./...
+	docker run $(VOLUMES) $(DEV_VOLUMES) --entrypoint=/bin/sh fidelity2ynab -c \
+	"go test -v ./..."
 
-bin/sync: $(shell find pkg -type f) $(shell find cmd -type f)
+.PHONY: test-all
+test-all:
+	docker run $(VOLUMES) $(DEV_VOLUMES) --entrypoint=/bin/sh fidelity2ynab -c \
+	"go test -tags=browser -v ./..."
+
+bin/sync: $(filter-out %_test.go, $(shell find pkg -type f) $(shell find cmd -type f))
 	GOBIN=$(GOBIN) go install ./cmd/sync

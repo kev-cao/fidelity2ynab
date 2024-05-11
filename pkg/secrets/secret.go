@@ -19,14 +19,19 @@ type secrets struct {
 	TwilioAccountSid   string `yaml:"twilio_account_sid"`
 	TwilioApiSecret    string `yaml:"twilio_api_secret"`
 	TwilioNumber       string `yaml:"twilio_number"`
+	TwilioToNumber     string `yaml:"twilio_to_number"`
 }
 
 var creds secrets
 
 func init() {
+	// Attempt to read secrets assuming in docker container first
 	data, err := os.ReadFile("/run/secrets/secrets")
 	if err != nil {
-		return
+		data, err = os.ReadFile("secrets.yaml")
+		if err != nil {
+			return
+		}
 	}
 
 	if err = yaml.Unmarshal(data, &creds); err != nil {

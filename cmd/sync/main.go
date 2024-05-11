@@ -1,3 +1,6 @@
+/*
+Entrypoint for sync command. Will fetch the current balance from Fidelity and update it in YNAB.
+*/
 package main
 
 import (

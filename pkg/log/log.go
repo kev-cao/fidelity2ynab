@@ -28,7 +28,7 @@ func init() {
 			creds.TwilioAccountSid,
 			creds.TwilioApiSecret,
 			creds.TwilioNumber,
-			os.Getenv("SMS_DEST_NUMBER"),
+			creds.TwilioToNumber,
 		), &slog.HandlerOptions{
 			Level: slog.LevelError,
 		}))
