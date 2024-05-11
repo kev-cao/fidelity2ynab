@@ -8,6 +8,7 @@ import (
 
 	"github.com/twilio/twilio-go"
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
+	"kevincao.dev/fidelity2ynab/pkg/util"
 )
 
 type twilioWriter struct {
@@ -38,11 +39,10 @@ func NewTwilioWriter(
 
 // Sends a message to the destination number
 func (s twilioWriter) Write(p []byte) (int, error) {
-	content := string(p)
 	_, err := s.client.Api.CreateMessage(&twilioApi.CreateMessageParams{
 		To:   &s.DestNumber,
 		From: &s.FromNumber,
-		Body: &content,
+		Body: util.Addr(string(p)),
 	})
 	if err != nil {
 		return 0, err

@@ -57,6 +57,18 @@ func ErrorContext(ctx context.Context, msg string, args ...any) {
 	logger.ErrorContext(ctx, msg, args...)
 }
 
+// Same as Error, but additionally exits the program with status code 1
+func Fatal(msg string, args ...any) {
+	logger.Error(msg, args...)
+	os.Exit(1)
+}
+
+// Same as ErrorContext, but additionally exits the program with status code 1
+func FatalContext(ctx context.Context, msg string, args ...any) {
+	logger.ErrorContext(ctx, msg, args...)
+	os.Exit(1)
+}
+
 func Info(msg string, args ...any) {
 	logger.Info(msg, args...)
 }

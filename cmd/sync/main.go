@@ -5,33 +5,40 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"kevincao.dev/fidelity2ynab/pkg/fidelity"
 	"kevincao.dev/fidelity2ynab/pkg/log"
 	"kevincao.dev/fidelity2ynab/pkg/secrets"
+	"kevincao.dev/fidelity2ynab/pkg/ynab"
 )
 
 func main() {
 	secrets, err := secrets.GetSecrets()
 	if err != nil {
-		log.Error("Failed to get secrets: %s", err)
-		os.Exit(1)
+		log.Fatal("Failed to get secrets: %s", err)
 	}
-	client, err := fidelity.NewFidelityBrowserClient(
+	fidelityClient, err := fidelity.NewFidelityBrowserClient(
 		secrets.FidelityUsername,
 		secrets.FidelityPassword,
 		secrets.FidelityTotpSecret,
 	)
 	if err != nil {
-		log.Error(fmt.Sprintf("Failed to initialize Fidelity Browser client: %s", err))
-		os.Exit(1)
+		log.Fatal("Failed to initialize Fidelity Browser client: " + err.Error())
 	}
-	defer client.Close()
-	balance, err := client.GetBalance()
+	defer fidelityClient.Close()
+	fidelityBalance, err := fidelityClient.GetBalance()
 	if err != nil {
-		log.Error(fmt.Sprintf("Failed to get Fidelity Balance: %s", err))
-		os.Exit(1)
+		log.Fatal("Failed to get Fidelity Balance: " + err.Error())
 	}
-	fmt.Println(balance)
+	log.Debug(fmt.Sprintf("Fidelity balance is %f", fidelityBalance))
+
+	ynabClient := ynab.NewClient(secrets.YnabApiKey)
+	ynabFidelity, budget, err := ynabClient.GetAccountWithName(secrets.YnabFidelityAccountName)
+	if err != nil {
+		log.Fatal("Failed to find YNAB account with name " + secrets.YnabFidelityAccountName)
+	}
+	ynabClient.UpdateAccountBalance(budget, ynabFidelity, fidelityBalance)
+	if err != nil {
+		log.Fatal("Failed to update YNAB account: " + err.Error())
+	}
 }

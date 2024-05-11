@@ -12,14 +12,15 @@ import (
 )
 
 type secrets struct {
-	FidelityTotpSecret string `yaml:"fidelity_totp_secret"`
-	FidelityUsername   string `yaml:"fidelity_username"`
-	FidelityPassword   string `yaml:"fidelity_password"`
-	YnabApiKey         string `yaml:"ynab_api_key"`
-	TwilioAccountSid   string `yaml:"twilio_account_sid"`
-	TwilioApiSecret    string `yaml:"twilio_api_secret"`
-	TwilioNumber       string `yaml:"twilio_number"`
-	TwilioToNumber     string `yaml:"twilio_to_number"`
+	FidelityTotpSecret      string `yaml:"fidelity_totp_secret"`
+	FidelityUsername        string `yaml:"fidelity_username"`
+	FidelityPassword        string `yaml:"fidelity_password"`
+	YnabApiKey              string `yaml:"ynab_api_key"`
+	YnabFidelityAccountName string `yaml:"ynab_fidelity_account_name"`
+	TwilioAccountSid        string `yaml:"twilio_account_sid"`
+	TwilioApiSecret         string `yaml:"twilio_api_secret"`
+	TwilioNumber            string `yaml:"twilio_number"`
+	TwilioToNumber          string `yaml:"twilio_to_number"`
 }
 
 var creds secrets

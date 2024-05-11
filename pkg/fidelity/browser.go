@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -50,7 +49,7 @@ func NewFidelityBrowserClient(username, password, totp_secret string, opts ...cu
 func (c *fidelityBrowserClient) initializeBrowserContext(opts ...cu.Option) error {
 	ctx, cancel, err := cu.New(cu.NewConfig(opts...))
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to create undetected chromedp context: %s", err))
+		return errors.New("Failed to create undetected chromedp context: " + err.Error())
 	}
 	c.cuCtx = ctx
 	c.cuCtxCancel = cancel
@@ -66,7 +65,7 @@ func (c fidelityBrowserClient) login() error {
 	if err := chromedp.Run(
 		c.cuCtx, chromedp.Navigate("https://digital.fidelity.com/prgw/digital/login/full-page"),
 	); err != nil {
-		return errors.New(fmt.Sprintf("Failed to navigate to Fidelity login page: %s", err))
+		return errors.New("Failed to navigate to Fidelity login page: " + err.Error())
 	}
 	log.Debug("Navigated to login page")
 	if err := c.submitCredentials(); err != nil {
@@ -80,19 +79,19 @@ func (c fidelityBrowserClient) login() error {
 
 func (c fidelityBrowserClient) submitCredentials() error {
 	if err := chromedp.Run(c.cuCtx, chromedp.SendKeys("#dom-username-input", c.username, chromedp.ByQuery)); err != nil {
-		return errors.New(fmt.Sprintf("Could not find username input element: %s", err))
+		return errors.New("Could not find username input element: " + err.Error())
 	}
 	log.Debug("Found username input element")
 	time.Sleep(DELAY)
 
 	if err := chromedp.Run(c.cuCtx, chromedp.SendKeys("#dom-pswd-input", c.password, chromedp.ByQuery)); err != nil {
-		return errors.New(fmt.Sprintf("Could not find password input element: %s", err))
+		return errors.New("Could not find password input element: " + err.Error())
 	}
 	log.Debug("Found password input element")
 	time.Sleep(DELAY)
 
 	if err := chromedp.Run(c.cuCtx, chromedp.Click("#dom-login-button", chromedp.ByQuery)); err != nil {
-		return errors.New(fmt.Sprintf("Could not find login button: %s", err))
+		return errors.New("Could not find login button: " + err.Error())
 	}
 	log.Debug("Found login button")
 	return nil
@@ -101,16 +100,16 @@ func (c fidelityBrowserClient) submitCredentials() error {
 func (c fidelityBrowserClient) submitTotp() error {
 	code, err := totp.GenerateCode(c.totp_secret, time.Now())
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to generate TOTP code: %s", err))
+		return errors.New("Failed to generate TOTP code: " + err.Error())
 	}
 	if err := chromedp.Run(c.cuCtx, chromedp.SendKeys("#dom-svip-security-code-input", code, chromedp.ByQuery)); err != nil {
-		return errors.New(fmt.Sprintf("Could not find TOTP element: %s", err))
+		return errors.New("Could not find TOTP element: " + err.Error())
 	}
 	log.Debug("Found TOTP input element")
 	time.Sleep(DELAY)
 
 	if err := chromedp.Run(c.cuCtx, chromedp.Click("#dom-svip-code-submit-button", chromedp.ByQuery)); err != nil {
-		return errors.New(fmt.Sprintf("Could not find TOTP submit button: %s", err))
+		return errors.New("Could not find TOTP submit button: " + err.Error())
 	}
 	log.Debug("Found TOTP submit button")
 
@@ -127,7 +126,7 @@ func (c fidelityBrowserClient) GetBalance() (float64, error) {
 		c.cuCtx,
 		chromedp.Dump(".total-balance-value", &content, chromedp.ByQuery),
 	); err != nil {
-		return 0, errors.New(fmt.Sprintf("Failed to read balance element: %s", err))
+		return 0, errors.New("Failed to read balance element: " + err.Error())
 	}
 
 	balancePattern, _ := regexp.Compile("\\$[0-9,]+\\.[0-9]+")
