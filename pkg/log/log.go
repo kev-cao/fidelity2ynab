@@ -1,5 +1,5 @@
 /*
-This package adds support for handler groups to be added to slog. This allows
+Package log adds support for handler groups to be added to slog. This allows
 multiple handlers to be attached to each slog logger, each of which can have its own
 log level. This is useful for sending logs to multiple destinations, such as stdout
 and a file, with different log levels for each.
