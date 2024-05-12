@@ -6,13 +6,13 @@ GOBIN ?= $$(pwd)/bin/
 
 .PHONY: dev
 dev: 
-	docker run $(VOLUMES) $(DEV_VOLUMES) -e ENV=dev --entrypoint=/bin/sh \
+	docker run --rm $(VOLUMES) $(DEV_VOLUMES) -e ENV=dev --entrypoint=/bin/sh \
 	fidelity2ynab -c "make bin/sync && ./bin/sync"
 
 .PHONY: prod
 prod:
 	make build && \
-	docker run $(VOLUMES) fidelity2ynab
+	docker run --rm $(VOLUMES) fidelity2ynab
 
 .PHONY: build
 build:
@@ -20,12 +20,12 @@ build:
 
 .PHONY: test
 test:
-	docker run $(VOLUMES) $(DEV_VOLUMES) --entrypoint=/bin/sh fidelity2ynab -c \
+	docker run --rm $(VOLUMES) $(DEV_VOLUMES) --entrypoint=/bin/sh fidelity2ynab -c \
 	"go test -v ./..."
 
 .PHONY: test-all
 test-all:
-	docker run $(VOLUMES) $(DEV_VOLUMES) --entrypoint=/bin/sh fidelity2ynab -c \
+	docker run --rm $(VOLUMES) $(DEV_VOLUMES) --entrypoint=/bin/sh fidelity2ynab -c \
 	"go test -tags=browser -v ./..."
 
 bin/sync: $(filter-out %_test.go, $(shell find pkg -type f) $(shell find cmd -type f))
