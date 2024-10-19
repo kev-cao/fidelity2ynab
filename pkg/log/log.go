@@ -10,9 +10,6 @@ import (
 	"context"
 	"os"
 
-	"kevincao.dev/fidelity2ynab/pkg/secrets"
-	"kevincao.dev/fidelity2ynab/pkg/twilio"
-
 	"golang.org/x/exp/slog"
 	"golang.org/x/sync/errgroup"
 )
@@ -21,18 +18,20 @@ var logger *slog.Logger
 
 func init() {
 	group := HandlerGroup{}
-	creds, err := secrets.GetSecrets()
-	if err == nil && os.Getenv("ENV") != "dev" {
-		// Automatically send error logs to the Twilio number
-		group.AddHandler(slog.NewTextHandler(twilio.NewTwilioWriter(
-			creds.TwilioAccountSid,
-			creds.TwilioApiSecret,
-			creds.TwilioNumber,
-			creds.TwilioToNumber,
-		), &slog.HandlerOptions{
-			Level: slog.LevelError,
-		}))
-	}
+	/*
+		creds, err := secrets.GetSecrets()
+		if err == nil && os.Getenv("ENV") != "dev" {
+			// Automatically send error logs to the Twilio number
+			group.AddHandler(slog.NewTextHandler(twilio.NewTwilioWriter(
+				creds.TwilioAccountSid,
+				creds.TwilioApiSecret,
+				creds.TwilioNumber,
+				creds.TwilioToNumber,
+			), &slog.HandlerOptions{
+				Level: slog.LevelError,
+			}))
+		}
+	*/
 	stdoutOptions := slog.HandlerOptions{}
 	if os.Getenv("ENV") == "dev" {
 		stdoutOptions.Level = slog.LevelDebug
