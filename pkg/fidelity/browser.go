@@ -38,6 +38,7 @@ func NewFidelityBrowserClient(username, password, totp_secret string, opts ...cu
 		totp_secret: totp_secret,
 	}
 	if len(opts) == 0 {
+		// Delete WithHeadless and run on local machine to view browser in realtime
 		opts = []cu.Option{cu.WithTimeout(1 * time.Minute), cu.WithHeadless()}
 	}
 	if err := client.initializeBrowserContext(opts...); err != nil {
