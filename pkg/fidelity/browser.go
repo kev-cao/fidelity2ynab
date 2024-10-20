@@ -124,7 +124,7 @@ func (c fidelityBrowserClient) GetBalance() (float64, error) {
 	content := bytes.Buffer{}
 	if err := chromedp.Run(
 		c.cuCtx,
-		chromedp.Dump(".total-balance-value", &content, chromedp.ByQuery),
+		chromedp.Dump(".balance-total-value", &content, chromedp.ByQuery),
 	); err != nil {
 		return 0, errors.New("Failed to read balance element: " + err.Error())
 	}
