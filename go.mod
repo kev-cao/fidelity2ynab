@@ -2,8 +2,6 @@ module kevincao.dev/fidelity2ynab
 
 go 1.23
 
-toolchain go1.23.2
-
 require (
 	github.com/Davincible/chromedp-undetected v1.3.8
 	github.com/brunomvsouza/ynab.go v1.4.0
@@ -19,7 +17,7 @@ require (
 	github.com/Xuanwo/go-locale v1.1.2 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/chromedp/cdproto v0.0.0-20241014181340-cb3a7a1d51d7 // indirect
-	github.com/chromedp/sysutil v1.1.0 // indirect
+	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
