@@ -12,11 +12,8 @@ import (
 	cu "github.com/Davincible/chromedp-undetected"
 	"github.com/chromedp/chromedp"
 	"github.com/pquerna/otp/totp"
+	"golang.org/x/exp/rand"
 	"kevincao.dev/fidelity2ynab/pkg/log"
-)
-
-const (
-	DELAY = 500 * time.Millisecond
 )
 
 type fidelityBrowserClient struct {
@@ -83,13 +80,13 @@ func (c fidelityBrowserClient) submitCredentials() error {
 		return errors.New("Could not find username input element: " + err.Error())
 	}
 	log.Debug("Found username input element")
-	time.Sleep(DELAY)
+	time.Sleep(delay())
 
 	if err := chromedp.Run(c.cuCtx, chromedp.SendKeys("#dom-pswd-input", c.password, chromedp.ByQuery)); err != nil {
 		return errors.New("Could not find password input element: " + err.Error())
 	}
 	log.Debug("Found password input element")
-	time.Sleep(DELAY)
+	time.Sleep(delay())
 
 	if err := chromedp.Run(c.cuCtx, chromedp.Click("#dom-login-button", chromedp.ByQuery)); err != nil {
 		return errors.New("Could not find login button: " + err.Error())
@@ -99,21 +96,23 @@ func (c fidelityBrowserClient) submitCredentials() error {
 }
 
 func (c fidelityBrowserClient) submitTotp() error {
+	if err := chromedp.Run(c.cuCtx, chromedp.WaitVisible("#dom-totp-security-code-input", chromedp.ByQuery)); err != nil {
+		return errors.New("Could not find TOTP input element: " + err.Error())
+	}
 	code, err := totp.GenerateCode(c.totp_secret, time.Now())
 	if err != nil {
 		return errors.New("Failed to generate TOTP code: " + err.Error())
 	}
-	if err := chromedp.Run(c.cuCtx, chromedp.SendKeys("#dom-svip-security-code-input", code, chromedp.ByQuery)); err != nil {
-		return errors.New("Could not find TOTP element: " + err.Error())
+	if err := chromedp.Run(c.cuCtx, chromedp.SendKeys("#dom-totp-security-code-input", code, chromedp.ByQuery)); err != nil {
+		return errors.New("Could not send keys to TOTP element: " + err.Error())
 	}
 	log.Debug("Found TOTP input element")
-	time.Sleep(DELAY)
+	time.Sleep(delay())
 
-	if err := chromedp.Run(c.cuCtx, chromedp.Click("#dom-svip-code-submit-button", chromedp.ByQuery)); err != nil {
+	if err := chromedp.Run(c.cuCtx, chromedp.Click("#dom-totp-code-continue-button", chromedp.ByQuery)); err != nil {
 		return errors.New("Could not find TOTP submit button: " + err.Error())
 	}
 	log.Debug("Found TOTP submit button")
-
 	return nil
 }
 
@@ -137,4 +136,8 @@ func (c fidelityBrowserClient) GetBalance() (float64, error) {
 	}
 	balanceString = balanceString[1:] // Remove dollar sign
 	return strconv.ParseFloat(strings.ReplaceAll(balanceString, ",", ""), 64)
+}
+
+func delay() time.Duration {
+	return time.Duration(rand.Intn(3000)+500) * time.Millisecond
 }
