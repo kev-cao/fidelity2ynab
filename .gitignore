@@ -1,3 +1,4 @@
 bin/**/*
 secrets.yaml
 .env
+**/.DS_STORE
