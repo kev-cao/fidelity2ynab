@@ -28,7 +28,9 @@ var _ FidelityClient = fidelityBrowserClient{}
 
 // NewFidelityBrowserClient creates a new FidelityBrowserClient
 // If no options are provided, the default options are a 1 minute timeout and headless mode.
-func NewFidelityBrowserClient(username, password, totp_secret string, opts ...cu.Option) (*fidelityBrowserClient, error) {
+func NewFidelityBrowserClient(
+	username, password, totp_secret string, opts ...cu.Option,
+) (*fidelityBrowserClient, error) {
 	client := fidelityBrowserClient{
 		username:    username,
 		password:    password,
@@ -36,7 +38,7 @@ func NewFidelityBrowserClient(username, password, totp_secret string, opts ...cu
 	}
 	if len(opts) == 0 {
 		// Delete WithHeadless and run on local machine to view browser in realtime
-		opts = []cu.Option{cu.WithTimeout(1 * time.Minute), cu.WithHeadless()}
+		opts = []cu.Option{cu.WithTimeout(2 * time.Minute)}
 	}
 	if err := client.initializeBrowserContext(opts...); err != nil {
 		return nil, err
@@ -60,14 +62,26 @@ func (c fidelityBrowserClient) Close() {
 }
 
 func (c fidelityBrowserClient) login() error {
+	const loginUrl = "https://digital.fidelity.com/prgw/digital/login/full-page?AuthRedUrl=https://digital.fidelity.com/ftgw/digital/portfolio/summary"
 	if err := chromedp.Run(
-		c.cuCtx, chromedp.Navigate("https://digital.fidelity.com/prgw/digital/login/full-page"),
+		c.cuCtx, chromedp.Navigate(loginUrl),
 	); err != nil {
 		return errors.New("Failed to navigate to Fidelity login page: " + err.Error())
 	}
 	log.Debug("Navigated to login page")
 	if err := c.submitCredentials(); err != nil {
 		return errors.New(err.Error())
+	}
+	var url string
+	if err := chromedp.Run(
+		c.cuCtx, chromedp.Location(&url),
+	); err != nil {
+		return errors.New("Failed to get current URL: " + err.Error())
+	}
+	time.Sleep(5 * time.Second) // Wait for button press to complete
+	if url != loginUrl {
+		log.Debug("Bypassed TOTP")
+		return nil
 	}
 	if err := c.submitTotp(); err != nil {
 		return errors.New(err.Error())
@@ -124,15 +138,15 @@ func (c fidelityBrowserClient) GetBalance() (float64, error) {
 	content := bytes.Buffer{}
 	if err := chromedp.Run(
 		c.cuCtx,
-		chromedp.Dump(".balance-total-value", &content, chromedp.ByQuery),
+		chromedp.Dump(".total-balance-value", &content, chromedp.ByQuery),
 	); err != nil {
 		return 0, errors.New("Failed to read balance element: " + err.Error())
 	}
 
-	balancePattern, _ := regexp.Compile("\\$[0-9,]+\\.[0-9]+")
+	balancePattern, _ := regexp.Compile(`\$[0-9,]+\.[0-9]+`)
 	balanceString := balancePattern.FindString(content.String())
 	if balanceString == "" {
-		return 0, errors.New("Failed to find balance in element")
+		return 0, errors.New("failed to find balance in element")
 	}
 	balanceString = balanceString[1:] // Remove dollar sign
 	return strconv.ParseFloat(strings.ReplaceAll(balanceString, ",", ""), 64)
